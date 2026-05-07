@@ -12,8 +12,10 @@
 :root{--bg:#050507;--panel:#13131c;--panel2:#1a1a28;--accent:#ff4500;--accent2:#ff6600;--gold:#ffd700;--dim:rgba(255,69,0,.18);--border:rgba(255,69,0,.45);--text:#e8e8e8;--muted:#666;--green:#00cc44;--blue:#4488ff;--purple:#aa44ff;--red:#ff2244;}
 body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,69,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,69,0,.04) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
-#auth-screen{display:flex;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;background:var(--bg)}
+#auth-screen,#banned-screen{display:flex;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;background:var(--bg)}
+#banned-screen{display:none}
 .auth-box{background:var(--panel);border:1px solid var(--border);padding:36px 32px;width:100%;max-width:380px;position:relative;z-index:1;box-shadow:0 0 50px rgba(255,69,0,.18)}
+.banned-box{background:var(--panel);border:1px solid var(--red);padding:36px 32px;width:100%;max-width:420px;text-align:center;box-shadow:0 0 50px rgba(255,34,68,.3)}
 .auth-logo{font-family:'Bebas Neue',cursive;font-size:42px;color:var(--accent);letter-spacing:4px;text-align:center;margin-bottom:4px;text-shadow:0 0 20px rgba(255,69,0,.5)}
 .auth-logo b{color:var(--gold)}
 .auth-sub{font-size:11px;letter-spacing:3px;color:var(--muted);text-align:center;margin-bottom:28px}
@@ -25,6 +27,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .user-badge{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
 #user-email{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 6px var(--green)}
+.admin-pill{font-family:'Bebas Neue',cursive;font-size:10px;letter-spacing:2px;padding:2px 8px;border:1px solid var(--gold);color:var(--gold);background:rgba(255,215,0,.05)}
 nav{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(13,13,19,.96);border-bottom:1px solid var(--dim);display:flex;align-items:center;padding:0 16px;gap:0;z-index:100;backdrop-filter:blur(12px)}
 .logo{font-family:'Bebas Neue',cursive;font-size:26px;color:var(--accent);letter-spacing:3px;margin-right:24px;text-shadow:0 0 18px rgba(255,69,0,.5);flex-shrink:0}
 .logo b{color:var(--gold)}
@@ -34,11 +37,14 @@ nav{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(13,13,19,.96
 .nav-tab{font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:2px;padding:7px 14px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
 .nav-tab:hover{color:var(--accent);border-color:var(--dim);background:rgba(255,69,0,.06)}
 .nav-tab.active{color:var(--accent);border-color:var(--border);background:rgba(255,69,0,.1);box-shadow:0 0 12px rgba(255,69,0,.18)}
+.nav-tab.admin{color:var(--gold);border-color:rgba(255,215,0,.3)}
+.nav-tab.admin:hover,.nav-tab.admin.active{color:var(--gold);border-color:var(--gold);background:rgba(255,215,0,.08);box-shadow:0 0 12px rgba(255,215,0,.18)}
 main{padding-top:76px;padding-bottom:48px;min-height:100vh;position:relative;z-index:1}
 .page{display:none;max-width:1200px;margin:0 auto;padding:0 18px}
 .page.active{display:block}
 .page-title{font-family:'Bebas Neue',cursive;font-size:34px;letter-spacing:4px;margin-bottom:22px;padding-bottom:10px;border-bottom:1px solid var(--dim)}
 .page-title span{color:var(--accent)}
+.page-title.admin span{color:var(--gold)}
 .card-title{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:3px;margin-bottom:14px;color:var(--muted)}
 .card-title span{color:var(--accent)}
 .mono{font-family:'Share Tech Mono',monospace}
@@ -151,13 +157,33 @@ option{background:var(--panel)}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--accent)}
 .complete-btn{width:100%;padding:15px;font-size:20px;margin-top:14px}
-@media(max-width:900px){.session-picker{grid-template-columns:1fr 1fr}.week-grid{grid-template-columns:repeat(4,1fr)}.grid3{grid-template-columns:1fr 1fr}.grid4{grid-template-columns:1fr 1fr}}
+
+/* ── ADMIN PAGE ── */
+.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.admin-stat{background:var(--panel);border:1px solid rgba(255,215,0,.18);padding:16px;text-align:center}
+.admin-stat-num{font-family:'Share Tech Mono',monospace;font-size:30px;color:var(--gold)}
+.admin-stat-lbl{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.user-row{background:var(--panel);border:1px solid var(--dim);padding:16px 18px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto auto auto;gap:14px;align-items:center;transition:all .2s}
+.user-row:hover{border-color:var(--border)}
+.user-row.banned{border-color:var(--red);background:rgba(255,34,68,.04)}
+.user-info{min-width:0}
+.user-name{font-family:'Bebas Neue',cursive;font-size:17px;letter-spacing:1px;margin-bottom:2px}
+.user-mail{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-stat{text-align:center;min-width:70px}
+.user-stat-num{font-family:'Share Tech Mono',monospace;font-size:18px;color:var(--accent)}
+.user-stat-lbl{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.status-pill{font-family:'Bebas Neue',cursive;font-size:10px;letter-spacing:2px;padding:3px 10px;border:1px solid}
+.status-pill.active{color:var(--green);border-color:var(--green)}
+.status-pill.banned{color:var(--red);border-color:var(--red)}
+.search-bar{margin-bottom:14px}
+
+@media(max-width:900px){.session-picker{grid-template-columns:1fr 1fr}.week-grid{grid-template-columns:repeat(4,1fr)}.grid3{grid-template-columns:1fr 1fr}.grid4{grid-template-columns:1fr 1fr}.admin-stats{grid-template-columns:1fr 1fr}.user-row{grid-template-columns:1fr auto;gap:8px}.user-stat{display:none}}
 @media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.ex-inputs{grid-template-columns:1fr 1fr}.hero-rank{font-size:46px}.week-grid{grid-template-columns:repeat(2,1fr)}.logo{font-size:21px;margin-right:12px}.nav-tab{font-size:11px;padding:7px 9px}#user-email{display:none}}
 </style>
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
+<!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">IRON<b>ASCEND</b></div>
@@ -173,6 +199,16 @@ option{background:var(--panel)}
   </div>
 </div>
 
+<!-- BANNED -->
+<div id="banned-screen">
+  <div class="banned-box">
+    <div style="font-size:48px;margin-bottom:12px">🚫</div>
+    <div style="font-family:'Bebas Neue';font-size:32px;letter-spacing:4px;color:var(--red);margin-bottom:10px">ACCESS DENIED</div>
+    <div style="color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.6">Your account has been suspended.<br>Contact the administrator if you think this is a mistake.</div>
+    <button class="btn btn-muted" onclick="doLogout()">RETURN</button>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app-screen" style="display:none">
 <nav>
@@ -184,22 +220,22 @@ option{background:var(--panel)}
     <button class="nav-tab" data-page="profile">PROFILE</button>
     <button class="nav-tab" data-page="progress">PROGRESS</button>
     <button class="nav-tab" data-page="gallery">GALLERY</button>
+    <button class="nav-tab admin" data-page="checking" id="admin-tab" style="display:none">⚡ CHECKING</button>
   </div>
   <div class="user-badge">
-    <div class="sync-dot" title="Synced"></div>
+    <div class="sync-dot"></div>
+    <span class="admin-pill" id="admin-pill" style="display:none">ADMIN</span>
     <span id="user-email"></span>
     <button class="btn btn-sm btn-muted" onclick="doLogout()" style="margin-left:4px">LOGOUT</button>
   </div>
 </nav>
+
 <main>
 <section class="page active" id="page-dashboard">
   <div class="hero">
     <div class="hero-rank" id="hero-rank">NOVICE</div>
     <div class="hero-xp mono" id="hero-xp-txt">0 XP TOTAL</div>
-    <div class="xp-wrap">
-      <div class="xp-labels"><span id="xp-lbl-l">0 XP</span><span id="xp-lbl-r">NEXT: WARRIOR @ 1,000 XP</span></div>
-      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
-    </div>
+    <div class="xp-wrap"><div class="xp-labels"><span id="xp-lbl-l">0 XP</span><span id="xp-lbl-r">NEXT: WARRIOR @ 1,000 XP</span></div><div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div></div>
   </div>
   <div class="grid3">
     <div class="card" style="text-align:center"><div class="stat-lbl">TOTAL WORKOUTS</div><div class="stat-num" id="d-total">0</div></div>
@@ -212,6 +248,7 @@ option{background:var(--panel)}
     <div class="card"><div class="card-title">RECENT <span>ACTIVITY</span></div><div id="d-recent"></div></div>
   </div>
 </section>
+
 <section class="page" id="page-workout">
   <div class="page-title">WORKOUT <span>LOG</span></div>
   <div id="sess-pick-view">
@@ -238,12 +275,14 @@ option{background:var(--panel)}
     <button class="btn btn-fill complete-btn" onclick="finishWorkout()">✔ COMPLETE WORKOUT</button>
   </div>
 </section>
+
 <section class="page" id="page-schedule">
   <div class="page-title">WEEKLY <span>SCHEDULE</span></div>
   <p style="color:var(--muted);margin-bottom:14px;font-size:13px;letter-spacing:1px">CLICK A DAY TO ASSIGN OR REMOVE A SESSION</p>
   <div class="week-grid" id="week-grid"></div>
   <div class="card"><div class="card-title">SESSION <span>LEGEND</span></div><div class="grid4" style="gap:10px"><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S1</p><p style="font-size:12px;color:var(--muted)">Chest + Biceps</p></div><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S2</p><p style="font-size:12px;color:var(--muted)">Triceps + Back</p></div><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S3</p><p style="font-size:12px;color:var(--muted)">Shoulders + Abs</p></div><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S4</p><p style="font-size:12px;color:var(--muted)">Legs</p></div></div></div>
 </section>
+
 <section class="page" id="page-profile">
   <div class="page-title">ATHLETE <span>PROFILE</span></div>
   <div class="grid2">
@@ -263,6 +302,7 @@ option{background:var(--panel)}
     </div>
   </div>
 </section>
+
 <section class="page" id="page-progress">
   <div class="page-title">PROGRESS <span>CHARTS</span></div>
   <div class="filter-row"><select id="ex-filter" onchange="drawCharts()"><option value="all">All Exercises (Top 3)</option></select><button class="btn btn-sm btn-gold" onclick="showBodyWeightEntry()">+ LOG BODY WEIGHT</button></div>
@@ -270,13 +310,56 @@ option{background:var(--panel)}
   <div class="chart-wrap"><div class="chart-title">WEIGHT LIFTED (KG)</div><canvas id="ch-weight"></canvas></div>
   <div class="chart-wrap"><div class="chart-title">BODY WEIGHT EVOLUTION (KG)</div><canvas id="ch-bw"></canvas></div>
 </section>
+
 <section class="page" id="page-gallery">
   <div class="page-title">PROGRESS <span>GALLERY</span></div>
   <div style="margin-bottom:14px"><button class="btn btn-fill" onclick="document.getElementById('gal-upload').click()">+ UPLOAD PHOTO</button><input type="file" id="gal-upload" accept="image/*" onchange="addGalleryPhoto(this)"></div>
   <div class="gallery-grid" id="gal-grid"></div>
 </section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- ADMIN CHECKING PAGE -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="page" id="page-checking">
+  <div class="page-title admin">CHECKING <span>STATION</span></div>
+
+  <div class="admin-stats">
+    <div class="admin-stat"><div class="admin-stat-num" id="ad-total">0</div><div class="admin-stat-lbl">TOTAL USERS</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" id="ad-active">0</div><div class="admin-stat-lbl">ACTIVE</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" id="ad-banned">0</div><div class="admin-stat-lbl">BANNED</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" id="ad-workouts">0</div><div class="admin-stat-lbl">TOTAL WORKOUTS</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">USER <span>MANAGEMENT</span></div>
+    <div class="search-bar"><input type="text" id="ad-search" placeholder="🔍 Search by name or email..." oninput="renderAdminUsers()"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-sm" id="filter-all" onclick="setAdminFilter('all')">ALL</button>
+      <button class="btn btn-sm btn-muted" id="filter-active" onclick="setAdminFilter('active')">ACTIVE</button>
+      <button class="btn btn-sm btn-muted" id="filter-banned" onclick="setAdminFilter('banned')">BANNED</button>
+      <button class="btn btn-sm btn-gold" onclick="loadAdminUsers()" style="margin-left:auto">⟳ REFRESH</button>
+    </div>
+    <div id="ad-users-list"></div>
+  </div>
+</section>
+
 </main>
+
+<!-- POPUPS -->
 <div class="overlay" id="sched-popup"><div class="popup"><div class="popup-title">ASSIGN SESSION</div><div id="sched-popup-day" style="color:var(--muted);font-size:12px;letter-spacing:2px;margin-bottom:14px"></div><div class="popup-opts"><button class="btn" onclick="assignDay(1)">SESSION 1 — CHEST + BICEPS</button><button class="btn" onclick="assignDay(2)">SESSION 2 — TRICEPS + BACK</button><button class="btn" onclick="assignDay(3)">SESSION 3 — SHOULDERS + ABS</button><button class="btn" onclick="assignDay(4)">SESSION 4 — LEGS</button><button class="btn btn-danger" onclick="assignDay(null)">REMOVE SESSION</button></div><button class="btn btn-sm btn-muted" style="margin-top:14px;width:100%" onclick="closeSchedPopup()">CANCEL</button></div></div>
+
+<!-- BAN CONFIRM POPUP -->
+<div class="overlay" id="ban-popup">
+  <div class="popup">
+    <div class="popup-title" id="ban-title">CONFIRM BAN</div>
+    <div id="ban-target" style="color:var(--muted);font-size:13px;margin-bottom:18px;font-family:'Share Tech Mono',monospace"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-danger" id="ban-confirm-btn" onclick="confirmBan()" style="flex:1">CONFIRM</button>
+      <button class="btn btn-muted" onclick="document.getElementById('ban-popup').classList.remove('on')" style="flex:1">CANCEL</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="xp-modal"><div class="modal-box"><div class="modal-sub">XP GAINED</div><div class="modal-xp-num" id="m-xp">+0</div><div class="mono" style="font-size:13px;color:var(--muted);margin:6px 0" id="m-total"></div><div id="m-prs" style="margin:12px 0"></div><button class="btn btn-fill" onclick="closeXpModal()">CONTINUE</button></div></div>
 <div class="modal" id="rank-modal"><div class="modal-box"><div style="font-size:36px;margin-bottom:6px">⚔️</div><div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:3px;color:var(--muted)">RANK UP!</div><div class="rankup-name" id="m-rank-name">WARRIOR</div><div style="font-size:14px;color:var(--muted);margin:8px 0">You have ascended!</div><button class="btn btn-fill" onclick="closeRankModal()">ASCEND</button></div></div>
 <div class="modal" id="bw-modal"><div class="modal-box"><div class="modal-sub">LOG BODY WEIGHT</div><div style="margin:18px 0"><label>WEIGHT (KG)</label><input type="number" id="bw-input" placeholder="75.0" step="0.1" style="margin-top:6px"></div><div style="display:flex;gap:10px;justify-content:center"><button class="btn btn-fill" onclick="saveBodyWeight()">SAVE</button><button class="btn btn-muted" onclick="document.getElementById('bw-modal').classList.remove('on')">CANCEL</button></div></div></div>
@@ -286,8 +369,15 @@ option{background:var(--panel)}
 </div>
 
 <script>
+// ════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════
 const SUPABASE_URL='https://umbfpyxrqdahkixlrtrr.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtYmZweXhycWRhaGtpeGxydHJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNjUwNzYsImV4cCI6MjA5Mzc0MTA3Nn0.uSH54YEzbgsvLfQ5-DBG-JB20jSfwoehvmeqDCaVbbU';
+
+// ⚠️ IMPORTANT: Replace this with YOUR email — only this email gets admin access
+const ADMIN_EMAIL='loic.gobet1@gmail.com';
+
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const SESSIONS={1:{name:'CHEST + BICEPS',exercises:['Bench Press','Incline Dumbbell Press','Cable Fly','Barbell Curl','Hammer Curl','Concentration Curl']},2:{name:'TRICEPS + BACK',exercises:['Tricep Pushdown','Skull Crushers','Overhead Tricep Extension','Deadlift','Pull-Ups','Bent-Over Row']},3:{name:'SHOULDERS + ABS',exercises:['Overhead Press','Lateral Raises','Face Pulls','Plank','Cable Crunch','Hanging Leg Raise']},4:{name:'LEGS',exercises:['Squat','Leg Press','Romanian Deadlift','Leg Curl','Calf Raises']}};
@@ -296,9 +386,12 @@ const QUOTES=['The pain you feel today will be the strength you feel tomorrow.',
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 let D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[]};
-let currentUser=null,saveTimer=null,authMode='login';
+let currentUser=null,saveTimer=null,authMode='login',isAdmin=false;
+let allUsers=[],adminFilter='all',banTarget=null;
 
-// ── AUTH ──
+// ════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════
 function toggleMode(){
   authMode=authMode==='login'?'register':'login';
   const r=authMode==='register';
@@ -309,7 +402,7 @@ function toggleMode(){
 }
 
 async function handleAuth(){
-  const email=document.getElementById('auth-email').value.trim();
+  const email=document.getElementById('auth-email').value.trim().toLowerCase();
   const pass=document.getElementById('auth-pass').value;
   const err=document.getElementById('auth-err');
   err.style.color='#ff4466';err.textContent='';
@@ -318,9 +411,14 @@ async function handleAuth(){
     const {error}=await sb.auth.signInWithPassword({email,password:pass});
     if(error)err.textContent=fErr(error.message);
   }else{
-    const {error}=await sb.auth.signUp({email,password:pass});
-    if(error)err.textContent=fErr(error.message);
-    else{err.style.color='var(--green)';err.textContent='Compte créé ! Connecte-toi maintenant.';authMode='login';document.getElementById('btn-main').textContent='CONNEXION';}
+    const {data,error}=await sb.auth.signUp({email,password:pass});
+    if(error){err.textContent=fErr(error.message);return;}
+    // Create user profile entry
+    if(data.user){
+      try{await sb.from('profiles').insert({user_id:data.user.id,email:email,banned:false,created_at:new Date().toISOString()});}catch(e){}
+    }
+    err.style.color='var(--green)';err.textContent='Compte créé ! Tu peux te connecter.';
+    authMode='login';document.getElementById('btn-main').textContent='CONNEXION';
   }
 }
 
@@ -334,40 +432,181 @@ function fErr(m){
 async function doLogout(){
   await sb.auth.signOut();
   D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[]};
+  isAdmin=false;
   document.getElementById('app-screen').style.display='none';
+  document.getElementById('banned-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
 }
 
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(session){
     currentUser=session.user;
+
+    // Ensure profile exists
+    try{
+      const {data:prof}=await sb.from('profiles').select('*').eq('user_id',currentUser.id).single();
+      if(!prof){
+        await sb.from('profiles').insert({user_id:currentUser.id,email:currentUser.email,banned:false,created_at:new Date().toISOString()});
+      } else if(prof.banned){
+        // BANNED USER
+        document.getElementById('auth-screen').style.display='none';
+        document.getElementById('app-screen').style.display='none';
+        document.getElementById('banned-screen').style.display='flex';
+        return;
+      }
+    }catch(e){
+      try{await sb.from('profiles').insert({user_id:currentUser.id,email:currentUser.email,banned:false,created_at:new Date().toISOString()});}catch(e2){}
+    }
+
+    // Check admin
+    isAdmin=(currentUser.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase();
+    document.getElementById('admin-pill').style.display=isAdmin?'inline-block':'none';
+    document.getElementById('admin-tab').style.display=isAdmin?'inline-block':'none';
+
     document.getElementById('user-email').textContent=currentUser.email;
     document.getElementById('auth-screen').style.display='none';
+    document.getElementById('banned-screen').style.display='none';
     document.getElementById('app-screen').style.display='block';
     await loadFromCloud();
     renderDashboard();
   }
 });
 
-// ── CLOUD SYNC ──
+// ════════════════════════════════════════════════
+// CLOUD SYNC (per-user)
+// ════════════════════════════════════════════════
 async function loadFromCloud(){
-  try{const s=localStorage.getItem('ironAscend_v2');if(s)D=Object.assign(D,JSON.parse(s));}catch(e){}
+  // Reset to clean state
+  D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[]};
   try{
     const {data}=await sb.from('userdata').select('data').eq('user_id',currentUser.id).single();
-    if(data?.data){D=Object.assign(D,data.data);localStorage.setItem('ironAscend_v2',JSON.stringify(D));}
+    if(data?.data)D=Object.assign(D,data.data);
   }catch(e){}
 }
 
 function save(){
-  localStorage.setItem('ironAscend_v2',JSON.stringify(D));
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     if(!currentUser)return;
-    try{await sb.from('userdata').upsert({user_id:currentUser.id,data:D,updated_at:new Date().toISOString()},{onConflict:'user_id'});}catch(e){}
-  },1500);
+    try{await sb.from('userdata').upsert({user_id:currentUser.id,data:D,updated_at:new Date().toISOString()},{onConflict:'user_id'});}catch(e){console.error(e);}
+  },1200);
 }
 
-// ── HELPERS ──
+// ════════════════════════════════════════════════
+// ADMIN PANEL
+// ════════════════════════════════════════════════
+async function loadAdminUsers(){
+  if(!isAdmin)return;
+  try{
+    const {data:profiles,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});
+    if(error){toast('LOAD ERROR');return;}
+    const {data:userdata}=await sb.from('userdata').select('user_id,data,updated_at');
+    const dataMap={};
+    (userdata||[]).forEach(u=>dataMap[u.user_id]=u);
+    allUsers=(profiles||[]).map(p=>{
+      const ud=dataMap[p.user_id];
+      const d=ud?.data||{};
+      return {
+        user_id:p.user_id,
+        email:p.email,
+        banned:p.banned,
+        created_at:p.created_at,
+        last_active:ud?.updated_at||p.created_at,
+        name:d.profile?.name||'',
+        totalXP:d.totalXP||0,
+        workouts:(d.workoutLog||[]).length,
+        streak:d.streak?.count||0
+      };
+    });
+    renderAdminStats();
+    renderAdminUsers();
+    toast(`${allUsers.length} USERS LOADED`);
+  }catch(e){toast('CONNECTION ERROR');}
+}
+
+function renderAdminStats(){
+  const total=allUsers.length;
+  const banned=allUsers.filter(u=>u.banned).length;
+  const active=total-banned;
+  const totalWorkouts=allUsers.reduce((s,u)=>s+u.workouts,0);
+  document.getElementById('ad-total').textContent=total;
+  document.getElementById('ad-active').textContent=active;
+  document.getElementById('ad-banned').textContent=banned;
+  document.getElementById('ad-workouts').textContent=totalWorkouts;
+}
+
+function setAdminFilter(f){
+  adminFilter=f;
+  ['all','active','banned'].forEach(k=>{
+    const el=document.getElementById('filter-'+k);
+    el.classList.toggle('btn-muted',k!==f);
+  });
+  renderAdminUsers();
+}
+
+function renderAdminUsers(){
+  const list=document.getElementById('ad-users-list');
+  const q=(document.getElementById('ad-search').value||'').toLowerCase();
+  let filtered=allUsers;
+  if(adminFilter==='active')filtered=filtered.filter(u=>!u.banned);
+  if(adminFilter==='banned')filtered=filtered.filter(u=>u.banned);
+  if(q)filtered=filtered.filter(u=>(u.email||'').toLowerCase().includes(q)||(u.name||'').toLowerCase().includes(q));
+
+  if(!filtered.length){list.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">No users match your search.</p>';return;}
+
+  list.innerHTML=filtered.map(u=>{
+    const isMe=u.user_id===currentUser.id;
+    const rank=getRank(u.totalXP);
+    return `<div class="user-row ${u.banned?'banned':''}">
+      <div class="user-info">
+        <div class="user-name">${u.name||'(no name)'} ${isMe?'<span style="color:var(--gold);font-size:11px;letter-spacing:2px">— YOU</span>':''}</div>
+        <div class="user-mail">${u.email}</div>
+        <div style="margin-top:4px"><span class="rank-badge" style="color:${rank.color};border-color:${rank.color}">${rank.name}</span></div>
+      </div>
+      <div class="user-stat"><div class="user-stat-num">${u.workouts}</div><div class="user-stat-lbl">WORKOUTS</div></div>
+      <div class="user-stat"><div class="user-stat-num">${u.totalXP.toLocaleString()}</div><div class="user-stat-lbl">XP</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <span class="status-pill ${u.banned?'banned':'active'}">${u.banned?'BANNED':'ACTIVE'}</span>
+        ${isMe?'':(u.banned?`<button class="btn btn-sm btn-gold" onclick="askUnban('${u.user_id}','${u.email.replace(/'/g,"\\'")}')">UNBAN</button>`:`<button class="btn btn-sm btn-danger" onclick="askBan('${u.user_id}','${u.email.replace(/'/g,"\\'")}')">BAN</button>`)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function askBan(uid,email){
+  banTarget={uid,email,action:'ban'};
+  document.getElementById('ban-title').textContent='CONFIRM BAN';
+  document.getElementById('ban-target').textContent=email;
+  document.getElementById('ban-confirm-btn').textContent='CONFIRM BAN';
+  document.getElementById('ban-confirm-btn').className='btn btn-danger';
+  document.getElementById('ban-popup').classList.add('on');
+}
+
+function askUnban(uid,email){
+  banTarget={uid,email,action:'unban'};
+  document.getElementById('ban-title').textContent='UNBAN USER';
+  document.getElementById('ban-target').textContent=email;
+  document.getElementById('ban-confirm-btn').textContent='CONFIRM UNBAN';
+  document.getElementById('ban-confirm-btn').className='btn btn-gold';
+  document.getElementById('ban-popup').classList.add('on');
+}
+
+async function confirmBan(){
+  if(!banTarget)return;
+  const newState=banTarget.action==='ban';
+  try{
+    const {error}=await sb.from('profiles').update({banned:newState}).eq('user_id',banTarget.uid);
+    if(error){toast('ACTION FAILED');return;}
+    document.getElementById('ban-popup').classList.remove('on');
+    toast(newState?'USER BANNED':'USER UNBANNED');
+    await loadAdminUsers();
+  }catch(e){toast('ERROR');}
+  banTarget=null;
+}
+
+// ════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════
 function getRank(xp){for(let i=RANKS.length-1;i>=0;i--)if(xp>=RANKS[i].min)return RANKS[i];return RANKS[0];}
 function getNextRank(xp){const r=getRank(xp);const idx=RANKS.indexOf(r);return RANKS[idx+1]||null;}
 function xpProgress(xp){const r=getRank(xp),n=getNextRank(xp);if(!n)return 100;return Math.min(100,((xp-r.min)/(n.min-r.min))*100);}
@@ -375,17 +614,21 @@ function todayStr(){return new Date().toISOString().split('T')[0];}
 function pad(n){return String(n).padStart(2,'0')}
 function fmtDur(s){if(!s)return'--';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return h?`${h}h ${m}m`:`${m}m ${sec}s`;}
 
-// ── NAV ──
+// ════════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════════
 function navigate(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   document.querySelector(`[data-page="${page}"]`).classList.add('active');
-  ({dashboard:renderDashboard,schedule:renderSchedule,profile:renderProfile,progress:renderProgress,gallery:renderGallery})[page]?.();
+  ({dashboard:renderDashboard,schedule:renderSchedule,profile:renderProfile,progress:renderProgress,gallery:renderGallery,checking:loadAdminUsers})[page]?.();
 }
 document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>navigate(t.dataset.page)));
 
-// ── DASHBOARD ──
+// ════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════
 function renderDashboard(){
   const xp=D.totalXP,rank=getRank(xp),next=getNextRank(xp),prog=xpProgress(xp);
   const h=document.getElementById('hero-rank');h.textContent=rank.name;h.style.color=rank.color;h.style.textShadow=`0 0 28px ${rank.color}`;
@@ -404,7 +647,9 @@ function renderDashboard(){
   document.getElementById('d-recent').innerHTML=rec.length?rec.map(w=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,69,0,.1)"><div><div style="font-family:'Bebas Neue';font-size:14px;letter-spacing:1px">${SESSIONS[w.session].name}</div><div class="mono" style="font-size:10px;color:var(--muted)">${w.date} · ${fmtDur(w.duration)}</div></div><div class="mono" style="color:var(--gold);font-size:13px">+${w.totalXP.toLocaleString()}</div></div>`).join(''):'<p style="color:var(--muted)">No workouts logged yet.</p>';
 }
 
-// ── WORKOUT ──
+// ════════════════════════════════════════════════
+// WORKOUT
+// ════════════════════════════════════════════════
 let curSession=null,sessStart=null,sessInterval=null;
 function startSession(num){
   curSession=num;document.getElementById('sess-pick-view').style.display='none';document.getElementById('sess-log-view').style.display='block';
@@ -436,27 +681,26 @@ function closeXpModal(){document.getElementById('xp-modal').classList.remove('on
 function closeRankModal(){document.getElementById('rank-modal').classList.remove('on');}
 function calcStreak(today){const yd=new Date();yd.setDate(yd.getDate()-1);const ydStr=yd.toISOString().split('T')[0];if(D.streak.lastDate===ydStr)D.streak.count++;else if(D.streak.lastDate!==today)D.streak.count=1;D.streak.lastDate=today;}
 
-// ── REST ──
+// ════════════════════════════════════════════════
+// REST / SCHEDULE / PROFILE / CHARTS / GALLERY / TOAST
+// ════════════════════════════════════════════════
 let restSec=90,restInt=null;
 function setRest(v){restSec=parseInt(v);}
 function triggerRest(){clearInterval(restInt);let rem=restSec;document.getElementById('rest-float').classList.add('on');document.getElementById('rest-ring').textContent=rem;restInt=setInterval(()=>{rem--;document.getElementById('rest-ring').textContent=rem;if(rem<=0){clearInterval(restInt);document.getElementById('rest-float').classList.remove('on');toast('REST DONE — BACK TO IT!');}},1000);}
 function skipRest(){clearInterval(restInt);document.getElementById('rest-float').classList.remove('on');}
 
-// ── SCHEDULE ──
 let schedDay=null;
 function renderSchedule(){const tk=DAYS[(new Date().getDay()+6)%7];document.getElementById('week-grid').innerHTML=DAYS.map(d=>{const sess=D.schedule[d],isToday=d===tk;return `<div class="day-cell ${sess?'has':''} ${isToday?'today':''}" onclick="openSchedPopup('${d}')"><div class="day-name">${d}</div>${isToday?'<div class="today-pill">TODAY</div>':''}${sess?`<div class="day-sess">S${sess}</div><div style="font-size:10px;color:var(--muted);margin-top:3px">${SESSIONS[sess].name}</div>`:'<div style="color:var(--muted);font-size:10px;margin-top:6px">REST</div>'}</div>`;}).join('');}
 function openSchedPopup(d){schedDay=d;document.getElementById('sched-popup-day').textContent=d.toUpperCase();document.getElementById('sched-popup').classList.add('on');}
 function closeSchedPopup(){document.getElementById('sched-popup').classList.remove('on');schedDay=null;}
 function assignDay(num){if(!schedDay)return;if(num===null)delete D.schedule[schedDay];else D.schedule[schedDay]=num;save();closeSchedPopup();renderSchedule();}
 
-// ── PROFILE ──
-function renderProfile(){const p=D.profile;document.getElementById('pf-name').value=p.name||'';document.getElementById('pf-age').value=p.age||'';document.getElementById('pf-weight').value=p.weight||'';document.getElementById('pf-height').value=p.height||'';document.getElementById('pf-goal').value=p.goal||'';document.getElementById('pf-disp-name').textContent=p.name||'ATHLETE';if(p.photo)document.getElementById('photo-slot').innerHTML=`<img src="${p.photo}" alt="">`;const r=getRank(D.totalXP);document.getElementById('pf-rank-badge').innerHTML=`<span class="rank-badge" style="color:${r.color};border-color:${r.color}">${r.name}</span>`;calcBMI();renderPRs();}
+function renderProfile(){const p=D.profile;document.getElementById('pf-name').value=p.name||'';document.getElementById('pf-age').value=p.age||'';document.getElementById('pf-weight').value=p.weight||'';document.getElementById('pf-height').value=p.height||'';document.getElementById('pf-goal').value=p.goal||'';document.getElementById('pf-disp-name').textContent=p.name||'ATHLETE';if(p.photo)document.getElementById('photo-slot').innerHTML=`<img src="${p.photo}" alt="">`;else document.getElementById('photo-slot').innerHTML='<span style="font-size:36px;color:var(--muted)">👤</span>';const r=getRank(D.totalXP);document.getElementById('pf-rank-badge').innerHTML=`<span class="rank-badge" style="color:${r.color};border-color:${r.color}">${r.name}</span>`;calcBMI();renderPRs();}
 function saveProfile(){D.profile.name=document.getElementById('pf-name').value;D.profile.age=document.getElementById('pf-age').value;D.profile.weight=document.getElementById('pf-weight').value;D.profile.height=document.getElementById('pf-height').value;D.profile.goal=document.getElementById('pf-goal').value;document.getElementById('pf-disp-name').textContent=D.profile.name||'ATHLETE';save();}
 function calcBMI(){const w=parseFloat(document.getElementById('pf-weight').value),h=parseFloat(document.getElementById('pf-height').value),n=document.getElementById('bmi-num'),c=document.getElementById('bmi-cat');if(w&&h){const bmi=w/((h/100)**2);n.textContent=bmi.toFixed(1);let cat,col;if(bmi<18.5){cat='UNDERWEIGHT';col='var(--blue)';}else if(bmi<25){cat='NORMAL';col='var(--green)';}else if(bmi<30){cat='OVERWEIGHT';col='var(--gold)';}else{cat='OBESE';col='var(--accent)';}n.style.color=col;c.textContent=cat;c.style.color=col;}else{n.textContent='--';c.textContent='ENTER WEIGHT & HEIGHT';c.style.color='';}}
 function uploadProfilePhoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{D.profile.photo=e.target.result;document.getElementById('photo-slot').innerHTML=`<img src="${e.target.result}" alt="">`;save();};r.readAsDataURL(f);}
 function renderPRs(){const list=document.getElementById('pr-list'),entries=Object.entries(D.prs);if(!entries.length){list.innerHTML='<p style="color:var(--muted)">No records yet. Start lifting!</p>';return;}list.innerHTML=entries.map(([n,p])=>`<div class="pr-item"><div class="pr-ex-name">${n}</div><div class="pr-val">${p.weight}kg × ${p.reps}r × ${p.sets}s</div></div>`).join('');}
 
-// ── CHARTS ──
 let chXP=null,chW=null,chBW=null;
 const CH_OPTS={responsive:true,plugins:{legend:{labels:{color:'#aaa',font:{family:'Rajdhani',size:13}}}},scales:{x:{ticks:{color:'#555',font:{family:'Share Tech Mono',size:11}},grid:{color:'rgba(255,69,0,.08)'}},y:{ticks:{color:'#555',font:{family:'Share Tech Mono',size:11}},grid:{color:'rgba(255,69,0,.08)'}}}};
 function renderProgress(){const f=document.getElementById('ex-filter');const all=Object.values(SESSIONS).flatMap(s=>s.exercises);f.innerHTML='<option value="all">All Exercises (Top 3)</option>'+all.map(e=>`<option value="${e}">${e}</option>`).join('');drawCharts();}
@@ -467,14 +711,12 @@ function drawBWChart(){if(chBW)chBW.destroy();const pts=[...D.bodyWeightLog,...D
 function showBodyWeightEntry(){document.getElementById('bw-modal').classList.add('on');}
 function saveBodyWeight(){const v=parseFloat(document.getElementById('bw-input').value);if(!v){toast('ENTER A VALID WEIGHT');return;}D.bodyWeightLog.push({date:todayStr(),weight:v});save();document.getElementById('bw-modal').classList.remove('on');document.getElementById('bw-input').value='';drawBWChart();toast('BODY WEIGHT LOGGED');}
 
-// ── GALLERY ──
 function addGalleryPhoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{D.gallery.push({src:e.target.result,date:todayStr()});save();renderGallery();};r.readAsDataURL(f);inp.value='';}
 function renderGallery(){const g=document.getElementById('gal-grid');if(!D.gallery.length){g.innerHTML='<p style="color:var(--muted);grid-column:1/-1">No photos yet. Document your journey!</p>';return;}g.innerHTML=[...D.gallery].reverse().map((item,di)=>{const ai=D.gallery.length-1-di;return `<div class="gallery-item"><img src="${item.src}" alt="" onclick="openLB(${ai})"><div class="gallery-date">${item.date}</div><button class="gallery-del btn btn-danger btn-sm" onclick="delPhoto(${ai})">✕</button></div>`;}).join('');}
 function openLB(i){document.getElementById('lb-img').src=D.gallery[i].src;document.getElementById('lightbox').classList.add('on');}
 function closeLightbox(e){if(!e||e.target.id==='lightbox'||e.target.classList.contains('lb-close'))document.getElementById('lightbox').classList.remove('on');}
 function delPhoto(i){D.gallery.splice(i,1);save();renderGallery();}
 
-// ── TOAST ──
 let toastT;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600);}
 </script>
