@@ -413,12 +413,11 @@ async function handleAuth(){
   }else{
     const {data,error}=await sb.auth.signUp({email,password:pass});
     if(error){err.textContent=fErr(error.message);return;}
-    // Create user profile entry
-    if(data.user){
-      try{await sb.from('profiles').insert({user_id:data.user.id,email:email,banned:false,created_at:new Date().toISOString()});}catch(e){}
-    }
     err.style.color='var(--green)';err.textContent='Compte créé ! Tu peux te connecter.';
-    authMode='login';document.getElementById('btn-main').textContent='CONNEXION';
+    authMode='login';
+    document.getElementById('btn-main').textContent='CONNEXION';
+    document.getElementById('btn-alt').textContent='CRÉER COMPTE';
+    document.getElementById('toggle-txt').textContent='Pas de compte ? Créer un compte';
   }
 }
 
