@@ -408,16 +408,19 @@ async function handleAuth(){
   err.style.color='#ff4466';err.textContent='';
   if(!email||!pass){err.textContent='Remplis tous les champs.';return;}
   if(authMode==='login'){
+    err.textContent='Connexion...';err.style.color='var(--gold)';
     const {error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error)err.textContent=fErr(error.message);
+    if(error){err.style.color='#ff4466';err.textContent=fErr(error.message);}
+    else{err.style.color='var(--green)';err.textContent='Connecté !';}
   }else{
+    err.textContent='Création du compte...';err.style.color='var(--gold)';
     const {data,error}=await sb.auth.signUp({email,password:pass});
-    if(error){err.textContent=fErr(error.message);return;}
-    err.style.color='var(--green)';err.textContent='Compte créé ! Tu peux te connecter.';
+    if(error){err.style.color='#ff4466';err.textContent=fErr(error.message);return;}
+    err.style.color='#00cc44';err.textContent='✓ Compte créé avec succès !';
     authMode='login';
     document.getElementById('btn-main').textContent='CONNEXION';
     document.getElementById('btn-alt').textContent='CRÉER COMPTE';
-    document.getElementById('toggle-txt').textContent='Pas de compte ? Créer un compte';
+    document.getElementById('toggle-txt').textContent='Pas de compte ? Se connecter';
   }
 }
 
