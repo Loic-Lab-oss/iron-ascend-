@@ -158,6 +158,27 @@ option{background:var(--panel)}
 ::-webkit-scrollbar-thumb{background:var(--accent)}
 .complete-btn{width:100%;padding:15px;font-size:20px;margin-top:14px}
 
+/* WORKOUT CARDS (custom workouts) */
+.workouts-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.wk-card{background:var(--panel);border:1px solid var(--dim);padding:18px;transition:all .2s;position:relative}
+.wk-card:hover{border-color:var(--border);box-shadow:0 0 22px rgba(255,69,0,.12)}
+.wk-card-name{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;line-height:1.1}
+.wk-card-count{font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
+.wk-card-exs{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;max-height:80px;overflow:hidden}
+.wk-card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.wk-card-actions .btn{flex:1}
+.wk-empty{text-align:center;padding:40px 20px;border:1px dashed var(--dim)}
+.wk-empty-title{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:3px;color:var(--muted);margin-bottom:8px}
+.wk-empty-sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+
+/* EDITOR EXERCISE ITEM */
+.edit-ex{background:var(--panel2);border:1px solid var(--dim);padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.edit-ex-name{font-family:'Bebas Neue',cursive;letter-spacing:1px;font-size:15px}
+.edit-ex-actions{display:flex;gap:4px;flex-shrink:0}
+.edit-ex-btn{background:transparent;border:1px solid var(--dim);color:var(--muted);font-family:'Bebas Neue',cursive;font-size:11px;padding:3px 8px;cursor:pointer;letter-spacing:1px}
+.edit-ex-btn:hover{border-color:var(--accent);color:var(--accent)}
+.edit-ex-btn.del:hover{border-color:#ff2244;color:#ff2244}
+
 /* ── ADMIN PAGE ── */
 .admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 .admin-stat{background:var(--panel);border:1px solid rgba(255,215,0,.18);padding:16px;text-align:center}
@@ -250,16 +271,18 @@ option{background:var(--panel)}
 </section>
 
 <section class="page" id="page-workout">
-  <div class="page-title">WORKOUT <span>LOG</span></div>
+  <div class="page-title">MY <span>WORKOUTS</span></div>
+
+  <!-- LIST OF USER WORKOUTS -->
   <div id="sess-pick-view">
-    <p style="color:var(--muted);margin-bottom:14px;letter-spacing:1px;font-size:13px">SELECT TODAY'S SESSION</p>
-    <div class="session-picker">
-      <div class="sess-card" onclick="startSession(1)"><div class="sess-num">1</div><div class="sess-name">CHEST + BICEPS</div></div>
-      <div class="sess-card" onclick="startSession(2)"><div class="sess-num">2</div><div class="sess-name">TRICEPS + BACK</div></div>
-      <div class="sess-card" onclick="startSession(3)"><div class="sess-num">3</div><div class="sess-name">SHOULDERS + ABS</div></div>
-      <div class="sess-card" onclick="startSession(4)"><div class="sess-num">4</div><div class="sess-name">LEGS</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <p style="color:var(--muted);letter-spacing:1px;font-size:13px">PICK A WORKOUT TO START — OR CREATE YOUR OWN</p>
+      <button class="btn btn-fill btn-sm" onclick="openCreateWorkout()">+ CREATE MY OWN WORKOUT</button>
     </div>
+    <div id="workouts-grid"></div>
   </div>
+
+  <!-- LOGGING A WORKOUT -->
   <div id="sess-log-view" style="display:none">
     <div class="timer-bar">
       <div><div style="font-size:10px;letter-spacing:2px;color:var(--muted)">SESSION TIMER</div><div class="timer-disp" id="sess-timer">00:00:00</div></div>
@@ -274,13 +297,50 @@ option{background:var(--panel)}
     <div id="ex-container"></div>
     <button class="btn btn-fill complete-btn" onclick="finishWorkout()">✔ COMPLETE WORKOUT</button>
   </div>
+
+  <!-- CREATE / EDIT WORKOUT VIEW -->
+  <div id="sess-edit-view" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div class="card-title" id="edit-title">NEW <span>WORKOUT</span></div>
+        <button class="btn btn-sm btn-muted" onclick="cancelEdit()">← BACK</button>
+      </div>
+
+      <!-- Preset templates picker (only shown when creating new) -->
+      <div id="preset-picker" style="margin-bottom:18px">
+        <label>QUICK START FROM A PRESET (OPTIONAL)</label>
+        <div class="grid2" style="gap:8px;margin-top:6px">
+          <button class="btn btn-sm" onclick="applyPreset(1)">CHEST + BICEPS</button>
+          <button class="btn btn-sm" onclick="applyPreset(2)">TRICEPS + BACK</button>
+          <button class="btn btn-sm" onclick="applyPreset(3)">SHOULDERS + ABS</button>
+          <button class="btn btn-sm" onclick="applyPreset(4)">LEGS</button>
+        </div>
+      </div>
+
+      <div class="fgroup"><label>WORKOUT NAME</label><input type="text" id="edit-name" placeholder="e.g. Push Day, Upper Body, Leg Day"></div>
+
+      <label>EXERCISES</label>
+      <div id="edit-exercises" style="margin:6px 0 14px"></div>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <input type="text" id="new-ex-input" list="ex-suggestions" placeholder="Type or pick an exercise..." style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter'){event.preventDefault();addExerciseToEdit();}">
+        <datalist id="ex-suggestions"></datalist>
+        <button class="btn btn-sm btn-gold" onclick="addExerciseToEdit()">+ ADD</button>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-fill" style="flex:1" onclick="saveWorkout()">✔ SAVE WORKOUT</button>
+        <button class="btn btn-muted" onclick="cancelEdit()">CANCEL</button>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section class="page" id="page-schedule">
   <div class="page-title">WEEKLY <span>SCHEDULE</span></div>
   <p style="color:var(--muted);margin-bottom:14px;font-size:13px;letter-spacing:1px">CLICK A DAY TO ASSIGN OR REMOVE A SESSION</p>
   <div class="week-grid" id="week-grid"></div>
-  <div class="card"><div class="card-title">SESSION <span>LEGEND</span></div><div class="grid4" style="gap:10px"><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S1</p><p style="font-size:12px;color:var(--muted)">Chest + Biceps</p></div><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S2</p><p style="font-size:12px;color:var(--muted)">Triceps + Back</p></div><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S3</p><p style="font-size:12px;color:var(--muted)">Shoulders + Abs</p></div><div><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px">S4</p><p style="font-size:12px;color:var(--muted)">Legs</p></div></div></div>
+  <div class="card"><div class="card-title">YOUR <span>WORKOUTS</span></div><div id="schedule-workouts-info"></div></div>
 </section>
 
 <section class="page" id="page-profile">
@@ -346,7 +406,7 @@ option{background:var(--panel)}
 </main>
 
 <!-- POPUPS -->
-<div class="overlay" id="sched-popup"><div class="popup"><div class="popup-title">ASSIGN SESSION</div><div id="sched-popup-day" style="color:var(--muted);font-size:12px;letter-spacing:2px;margin-bottom:14px"></div><div class="popup-opts"><button class="btn" onclick="assignDay(1)">SESSION 1 — CHEST + BICEPS</button><button class="btn" onclick="assignDay(2)">SESSION 2 — TRICEPS + BACK</button><button class="btn" onclick="assignDay(3)">SESSION 3 — SHOULDERS + ABS</button><button class="btn" onclick="assignDay(4)">SESSION 4 — LEGS</button><button class="btn btn-danger" onclick="assignDay(null)">REMOVE SESSION</button></div><button class="btn btn-sm btn-muted" style="margin-top:14px;width:100%" onclick="closeSchedPopup()">CANCEL</button></div></div>
+<div class="overlay" id="sched-popup"><div class="popup"><div class="popup-title">ASSIGN WORKOUT</div><div id="sched-popup-day" style="color:var(--muted);font-size:12px;letter-spacing:2px;margin-bottom:14px"></div><div class="popup-opts" id="sched-popup-opts"></div><button class="btn btn-sm btn-muted" style="margin-top:14px;width:100%" onclick="closeSchedPopup()">CANCEL</button></div></div>
 
 <!-- BAN CONFIRM POPUP -->
 <div class="overlay" id="ban-popup">
@@ -380,12 +440,20 @@ const ADMIN_EMAIL='loic.gobet1@gmail.com';
 
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const SESSIONS={1:{name:'CHEST + BICEPS',exercises:['Bench Press','Incline Dumbbell Press','Cable Fly','Barbell Curl','Hammer Curl','Concentration Curl']},2:{name:'TRICEPS + BACK',exercises:['Tricep Pushdown','Skull Crushers','Overhead Tricep Extension','Deadlift','Pull-Ups','Bent-Over Row']},3:{name:'SHOULDERS + ABS',exercises:['Overhead Press','Lateral Raises','Face Pulls','Plank','Cable Crunch','Hanging Leg Raise']},4:{name:'LEGS',exercises:['Squat','Leg Press','Romanian Deadlift','Leg Curl','Calf Raises']}};
+// Preset templates (for users to quickly start from)
+const PRESETS={1:{name:'CHEST + BICEPS',exercises:['Bench Press','Incline Dumbbell Press','Cable Fly','Barbell Curl','Hammer Curl','Concentration Curl']},2:{name:'TRICEPS + BACK',exercises:['Tricep Pushdown','Skull Crushers','Overhead Tricep Extension','Deadlift','Pull-Ups','Bent-Over Row']},3:{name:'SHOULDERS + ABS',exercises:['Overhead Press','Lateral Raises','Face Pulls','Plank','Cable Crunch','Hanging Leg Raise']},4:{name:'LEGS',exercises:['Squat','Leg Press','Romanian Deadlift','Leg Curl','Calf Raises']}};
+
+// Master exercise library (suggestions for autocomplete)
+const EXERCISE_LIBRARY=['Bench Press','Incline Dumbbell Press','Decline Press','Cable Fly','Dumbbell Fly','Push-Ups','Dips','Barbell Curl','Hammer Curl','Concentration Curl','Preacher Curl','Cable Curl','Tricep Pushdown','Skull Crushers','Overhead Tricep Extension','Tricep Dips','Close-Grip Bench Press','Deadlift','Pull-Ups','Chin-Ups','Bent-Over Row','Lat Pulldown','Seated Cable Row','T-Bar Row','One-Arm Dumbbell Row','Overhead Press','Lateral Raises','Front Raises','Face Pulls','Reverse Fly','Shrugs','Arnold Press','Squat','Front Squat','Leg Press','Romanian Deadlift','Leg Curl','Leg Extension','Calf Raises','Bulgarian Split Squat','Lunges','Hip Thrust','Plank','Cable Crunch','Hanging Leg Raise','Russian Twists','Sit-Ups','Mountain Climbers','Bicycle Crunches','Burpees','Box Jumps','Battle Ropes','Kettlebell Swings'];
+
+// Backwards compatibility — D.workouts holds the user's custom workouts
+// Helper that returns the active workouts (custom if any, presets otherwise)
+function SESSIONS_GET(){return (D.workouts && Object.keys(D.workouts).length) ? D.workouts : {};}
 const RANKS=[{name:'NOVICE',min:0,color:'#888888'},{name:'WARRIOR',min:1000,color:'#00cc44'},{name:'ELITE',min:5000,color:'#4488ff'},{name:'MASTER',min:15000,color:'#aa44ff'},{name:'GRANDMASTER',min:40000,color:'#ffd700'},{name:'LEGEND',min:100000,color:'#ff2244'}];
 const QUOTES=['The pain you feel today will be the strength you feel tomorrow.','Train insane or remain the same.','Strong people are harder to kill and more useful in general.','The iron never lies to you.','Discipline is doing what needs to be done, even when you don\'t want to.','Your body can stand almost anything. It\'s your mind you must convince.','Success isn\'t about greatness — it\'s about consistency.','Don\'t stop when it hurts. Stop when you\'re done.','Every rep is a brick in the fortress you\'re building.','Comfort is the enemy of progress.'];
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-let D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[]};
+let D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[],workouts:{}};
 let currentUser=null,saveTimer=null,authMode='login',isAdmin=false;
 let allUsers=[],adminFilter='all',banTarget=null;
 
@@ -433,7 +501,7 @@ function fErr(m){
 
 async function doLogout(){
   await sb.auth.signOut();
-  D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[]};
+  D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[],workouts:{}};
   isAdmin=false;
   document.getElementById('app-screen').style.display='none';
   document.getElementById('banned-screen').style.display='none';
@@ -479,7 +547,7 @@ sb.auth.onAuthStateChange(async(event,session)=>{
 // ════════════════════════════════════════════════
 async function loadFromCloud(){
   // Reset to clean state
-  D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[]};
+  D={totalXP:0,workoutLog:[],profile:{name:'',age:'',weight:'',height:'',goal:'',photo:''},schedule:{},gallery:[],prs:{},streak:{count:0,lastDate:''},bodyWeightLog:[],workouts:{}};
   try{
     const {data}=await sb.from('userdata').select('data').eq('user_id',currentUser.id).single();
     if(data?.data)D=Object.assign(D,data.data);
@@ -624,7 +692,7 @@ function navigate(page){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   document.querySelector(`[data-page="${page}"]`).classList.add('active');
-  ({dashboard:renderDashboard,schedule:renderSchedule,profile:renderProfile,progress:renderProgress,gallery:renderGallery,checking:loadAdminUsers})[page]?.();
+  ({dashboard:renderDashboard,workout:renderWorkoutsGrid,schedule:renderSchedule,profile:renderProfile,progress:renderProgress,gallery:renderGallery,checking:loadAdminUsers})[page]?.();
 }
 document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>navigate(t.dataset.page)));
 
@@ -644,9 +712,10 @@ function renderDashboard(){
   document.getElementById('d-week').textContent=D.workoutLog.filter(w=>new Date(w.date+'T00:00:00')>=ws).length;
   document.getElementById('d-quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
   const tk=DAYS[(new Date().getDay()+6)%7],ts=D.schedule[tk];
-  document.getElementById('d-today').innerHTML=ts?`<div style="font-family:'Bebas Neue';font-size:20px;color:var(--accent);letter-spacing:2px">SESSION ${ts}</div><div style="font-size:13px;color:var(--muted);margin:3px 0 12px">${SESSIONS[ts].name}</div><button class="btn btn-fill btn-sm" onclick="navigate('workout');startSession(${ts})">START NOW</button>`:`<p style="color:var(--muted)">No session for today (${tk}).</p><button class="btn btn-sm" style="margin-top:10px" onclick="navigate('schedule')">PLAN SCHEDULE</button>`;
+  const tsW=ts&&D.workouts[ts]?D.workouts[ts]:null;
+  document.getElementById('d-today').innerHTML=tsW?`<div style="font-family:'Bebas Neue';font-size:20px;color:var(--accent);letter-spacing:2px">${tsW.name}</div><div style="font-size:13px;color:var(--muted);margin:3px 0 12px">${tsW.exercises.length} exercises</div><button class="btn btn-fill btn-sm" onclick="navigate('workout');startSession('${ts}')">START NOW</button>`:`<p style="color:var(--muted)">No workout for today (${tk}).</p><button class="btn btn-sm" style="margin-top:10px" onclick="navigate('workout')">CREATE WORKOUT</button>`;
   const rec=D.workoutLog.slice(-5).reverse();
-  document.getElementById('d-recent').innerHTML=rec.length?rec.map(w=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,69,0,.1)"><div><div style="font-family:'Bebas Neue';font-size:14px;letter-spacing:1px">${SESSIONS[w.session].name}</div><div class="mono" style="font-size:10px;color:var(--muted)">${w.date} · ${fmtDur(w.duration)}</div></div><div class="mono" style="color:var(--gold);font-size:13px">+${w.totalXP.toLocaleString()}</div></div>`).join(''):'<p style="color:var(--muted)">No workouts logged yet.</p>';
+  document.getElementById('d-recent').innerHTML=rec.length?rec.map(w=>{const wname=D.workouts[w.session]?.name||w.sessionName||'Workout';return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,69,0,.1)"><div><div style="font-family:'Bebas Neue';font-size:14px;letter-spacing:1px">${wname}</div><div class="mono" style="font-size:10px;color:var(--muted)">${w.date} · ${fmtDur(w.duration)}</div></div><div class="mono" style="color:var(--gold);font-size:13px">+${w.totalXP.toLocaleString()}</div></div>`;}).join(''):'<p style="color:var(--muted)">No workouts logged yet.</p>';
 }
 
 // ════════════════════════════════════════════════
@@ -654,23 +723,27 @@ function renderDashboard(){
 // ════════════════════════════════════════════════
 let curSession=null,sessStart=null,sessInterval=null;
 function startSession(num){
+  num=String(num);
+  const w=D.workouts[num];
+  if(!w){toast('WORKOUT NOT FOUND');return;}
   curSession=num;document.getElementById('sess-pick-view').style.display='none';document.getElementById('sess-log-view').style.display='block';
-  document.getElementById('sess-title-bar').textContent=`S${num} — ${SESSIONS[num].name}`;
-  const last=D.workoutLog.filter(w=>w.session===num).slice(-1)[0];
-  document.getElementById('ex-container').innerHTML=SESSIONS[num].exercises.map((ex,i)=>{const lw=last?.exercises?.[i];return `<div class="ex-row"><div class="ex-name">${ex} <span class="pr-badge" id="prb-${i}">NEW PR 🔥</span></div><div class="ex-inputs"><div><label>WEIGHT (KG)</label><input type="number" id="ew-${i}" placeholder="0" step="0.5" min="0" value="${lw?.weight||''}" oninput="chkPR(${i},'${ex.replace(/'/g,"\\'")}')"></div><div><label>REPS</label><input type="number" id="er-${i}" placeholder="0" min="0" value="${lw?.reps||''}" oninput="chkPR(${i},'${ex.replace(/'/g,"\\'")}')"></div><div><label>SETS</label><input type="number" id="es-${i}" placeholder="0" min="0" value="${lw?.sets||''}" oninput="chkPR(${i},'${ex.replace(/'/g,"\\'")}')"></div><button class="btn btn-sm btn-gold" onclick="triggerRest()">REST</button></div></div>`;}).join('');
+  document.getElementById('sess-title-bar').textContent=w.name;
+  const last=D.workoutLog.filter(wl=>wl.session===num).slice(-1)[0];
+  document.getElementById('ex-container').innerHTML=w.exercises.map((ex,i)=>{const lw=last?.exercises?.[i];return `<div class="ex-row"><div class="ex-name">${ex} <span class="pr-badge" id="prb-${i}">NEW PR 🔥</span></div><div class="ex-inputs"><div><label>WEIGHT (KG)</label><input type="number" id="ew-${i}" placeholder="0" step="0.5" min="0" value="${lw?.weight||''}" oninput="chkPR(${i},'${ex.replace(/'/g,"\\'")}')"></div><div><label>REPS</label><input type="number" id="er-${i}" placeholder="0" min="0" value="${lw?.reps||''}" oninput="chkPR(${i},'${ex.replace(/'/g,"\\'")}')"></div><div><label>SETS</label><input type="number" id="es-${i}" placeholder="0" min="0" value="${lw?.sets||''}" oninput="chkPR(${i},'${ex.replace(/'/g,"\\'")}')"></div><button class="btn btn-sm btn-gold" onclick="triggerRest()">REST</button></div></div>`;}).join('');
   sessStart=Date.now();clearInterval(sessInterval);
   sessInterval=setInterval(()=>{const e=Math.floor((Date.now()-sessStart)/1000);document.getElementById('sess-timer').textContent=`${pad(Math.floor(e/3600))}:${pad(Math.floor((e%3600)/60))}:${pad(e%60)}`;},1000);
 }
 function chkPR(i,ex){const w=parseFloat(document.getElementById(`ew-${i}`).value)||0,r=parseInt(document.getElementById(`er-${i}`).value)||0,s=parseInt(document.getElementById(`es-${i}`).value)||0,badge=document.getElementById(`prb-${i}`);if(w>0&&r>0&&s>0){const pr=D.prs[ex];badge.classList.toggle('on',!pr||(w*r*s>pr.weight*pr.reps*pr.sets));}else badge.classList.remove('on');}
-function cancelSession(){clearInterval(sessInterval);document.getElementById('sess-pick-view').style.display='block';document.getElementById('sess-log-view').style.display='none';curSession=null;}
+function cancelSession(){clearInterval(sessInterval);document.getElementById('sess-pick-view').style.display='block';document.getElementById('sess-log-view').style.display='none';curSession=null;renderWorkoutsGrid();}
 function finishWorkout(){
   if(!curSession)return;
-  const exs=SESSIONS[curSession].exercises,logged=[],newPRs=[];let totalXP=0;
+  const w=D.workouts[curSession];if(!w)return;
+  const exs=w.exercises,logged=[],newPRs=[];let totalXP=0;
   const prevRank=getRank(D.totalXP);
-  exs.forEach((ex,i)=>{const w=parseFloat(document.getElementById(`ew-${i}`).value)||0,r=parseInt(document.getElementById(`er-${i}`).value)||0,s=parseInt(document.getElementById(`es-${i}`).value)||0;if(w>0||r>0||s>0){const xp=w*r*s;totalXP+=xp;logged.push({name:ex,weight:w,reps:r,sets:s,xp});const pr=D.prs[ex];if(w>0&&r>0&&s>0&&(!pr||xp>pr.weight*pr.reps*pr.sets)){D.prs[ex]={weight:w,reps:r,sets:s};newPRs.push(ex);}}});
+  exs.forEach((ex,i)=>{const w2=parseFloat(document.getElementById(`ew-${i}`).value)||0,r=parseInt(document.getElementById(`er-${i}`).value)||0,s=parseInt(document.getElementById(`es-${i}`).value)||0;if(w2>0||r>0||s>0){const xp=w2*r*s;totalXP+=xp;logged.push({name:ex,weight:w2,reps:r,sets:s,xp});const pr=D.prs[ex];if(w2>0&&r>0&&s>0&&(!pr||xp>pr.weight*pr.reps*pr.sets)){D.prs[ex]={weight:w2,reps:r,sets:s};newPRs.push(ex);}}});
   if(!logged.length){toast('LOG AT LEAST ONE EXERCISE');return;}
   const dur=Math.floor((Date.now()-sessStart)/1000),today=todayStr();
-  D.workoutLog.push({date:today,session:curSession,exercises:logged,totalXP,duration:dur,bodyWeight:parseFloat(D.profile.weight)||null});
+  D.workoutLog.push({date:today,session:curSession,sessionName:w.name,exercises:logged,totalXP,duration:dur,bodyWeight:parseFloat(D.profile.weight)||null});
   D.totalXP+=totalXP;calcStreak(today);save();
   const newRank=getRank(D.totalXP);
   document.getElementById('m-xp').textContent='+'+totalXP.toLocaleString();
@@ -691,9 +764,174 @@ function setRest(v){restSec=parseInt(v);}
 function triggerRest(){clearInterval(restInt);let rem=restSec;document.getElementById('rest-float').classList.add('on');document.getElementById('rest-ring').textContent=rem;restInt=setInterval(()=>{rem--;document.getElementById('rest-ring').textContent=rem;if(rem<=0){clearInterval(restInt);document.getElementById('rest-float').classList.remove('on');toast('REST DONE — BACK TO IT!');}},1000);}
 function skipRest(){clearInterval(restInt);document.getElementById('rest-float').classList.remove('on');}
 
+// ════════════════════════════════════════════════
+// CUSTOM WORKOUT MANAGEMENT
+// ════════════════════════════════════════════════
+let editingWorkoutId=null;     // null = creating new, otherwise the id being edited
+let editExercises=[];          // exercises currently in the editor
+
+function renderWorkoutsGrid(){
+  // Make sure we're showing the picker view, not log/edit
+  document.getElementById('sess-pick-view').style.display='block';
+  document.getElementById('sess-log-view').style.display='none';
+  document.getElementById('sess-edit-view').style.display='none';
+
+  const grid=document.getElementById('workouts-grid');
+  const wks=Object.entries(D.workouts);
+  if(!wks.length){
+    grid.className='';
+    grid.innerHTML=`<div class="wk-empty">
+      <div class="wk-empty-title">NO WORKOUTS YET</div>
+      <div class="wk-empty-sub">Create your first custom workout to start training.<br>You can build it from scratch or use a preset as a starting point.</div>
+      <button class="btn btn-fill" onclick="openCreateWorkout()">+ CREATE MY FIRST WORKOUT</button>
+    </div>`;
+    return;
+  }
+  grid.className='workouts-list';
+  grid.innerHTML=wks.map(([id,w])=>`
+    <div class="wk-card">
+      <div class="wk-card-name">${escapeHtml(w.name)}</div>
+      <div class="wk-card-count">${w.exercises.length} exercise${w.exercises.length!==1?'s':''}</div>
+      <div class="wk-card-exs">${w.exercises.slice(0,4).map(e=>`• ${escapeHtml(e)}`).join('<br>')}${w.exercises.length>4?`<br>+ ${w.exercises.length-4} more...`:''}</div>
+      <div class="wk-card-actions">
+        <button class="btn btn-fill btn-sm" onclick="startSession('${id}')">▶ START</button>
+        <button class="btn btn-sm" onclick="openEditWorkout('${id}')">EDIT</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteWorkout('${id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function openCreateWorkout(){
+  editingWorkoutId=null;
+  editExercises=[];
+  document.getElementById('edit-title').innerHTML='NEW <span>WORKOUT</span>';
+  document.getElementById('edit-name').value='';
+  document.getElementById('preset-picker').style.display='block';
+  document.getElementById('sess-pick-view').style.display='none';
+  document.getElementById('sess-edit-view').style.display='block';
+  populateExSuggestions();
+  renderEditExercises();
+}
+
+function openEditWorkout(id){
+  const w=D.workouts[id];if(!w)return;
+  editingWorkoutId=id;
+  editExercises=[...w.exercises];
+  document.getElementById('edit-title').innerHTML='EDIT <span>WORKOUT</span>';
+  document.getElementById('edit-name').value=w.name;
+  document.getElementById('preset-picker').style.display='none';
+  document.getElementById('sess-pick-view').style.display='none';
+  document.getElementById('sess-edit-view').style.display='block';
+  populateExSuggestions();
+  renderEditExercises();
+}
+
+function cancelEdit(){
+  document.getElementById('sess-edit-view').style.display='none';
+  document.getElementById('sess-pick-view').style.display='block';
+  editingWorkoutId=null;editExercises=[];
+}
+
+function applyPreset(num){
+  const p=PRESETS[num];if(!p)return;
+  if(!document.getElementById('edit-name').value.trim()){
+    document.getElementById('edit-name').value=p.name;
+  }
+  editExercises=[...p.exercises];
+  renderEditExercises();
+  toast('PRESET LOADED — CUSTOMIZE IT!');
+}
+
+function populateExSuggestions(){
+  document.getElementById('ex-suggestions').innerHTML=EXERCISE_LIBRARY.map(e=>`<option value="${escapeAttr(e)}">`).join('');
+}
+
+function renderEditExercises(){
+  const c=document.getElementById('edit-exercises');
+  if(!editExercises.length){
+    c.innerHTML='<p style="color:var(--muted);font-size:13px;padding:10px 0;text-align:center">No exercises yet. Add some below ↓</p>';
+    return;
+  }
+  c.innerHTML=editExercises.map((ex,i)=>`
+    <div class="edit-ex">
+      <div class="edit-ex-name">${escapeHtml(ex)}</div>
+      <div class="edit-ex-actions">
+        ${i>0?`<button class="edit-ex-btn" onclick="moveEx(${i},-1)" title="Move up">▲</button>`:''}
+        ${i<editExercises.length-1?`<button class="edit-ex-btn" onclick="moveEx(${i},1)" title="Move down">▼</button>`:''}
+        <button class="edit-ex-btn del" onclick="removeEx(${i})">REMOVE</button>
+      </div>
+    </div>`).join('');
+}
+
+function addExerciseToEdit(){
+  const inp=document.getElementById('new-ex-input');
+  const v=inp.value.trim();
+  if(!v)return;
+  editExercises.push(v);
+  inp.value='';
+  renderEditExercises();
+  inp.focus();
+}
+
+function removeEx(i){editExercises.splice(i,1);renderEditExercises();}
+function moveEx(i,dir){const ni=i+dir;if(ni<0||ni>=editExercises.length)return;[editExercises[i],editExercises[ni]]=[editExercises[ni],editExercises[i]];renderEditExercises();}
+
+function saveWorkout(){
+  const name=document.getElementById('edit-name').value.trim();
+  if(!name){toast('GIVE YOUR WORKOUT A NAME');return;}
+  if(!editExercises.length){toast('ADD AT LEAST ONE EXERCISE');return;}
+  if(editingWorkoutId){
+    // Update existing
+    D.workouts[editingWorkoutId].name=name;
+    D.workouts[editingWorkoutId].exercises=[...editExercises];
+    toast('WORKOUT UPDATED');
+  } else {
+    // Create new
+    const id='w'+Date.now();
+    D.workouts[id]={name,exercises:[...editExercises]};
+    toast('WORKOUT CREATED');
+  }
+  save();
+  cancelEdit();
+  renderWorkoutsGrid();
+}
+
+function deleteWorkout(id){
+  const w=D.workouts[id];if(!w)return;
+  if(!confirm(`Delete "${w.name}"? This can't be undone.`))return;
+  delete D.workouts[id];
+  // Remove from schedule too
+  Object.keys(D.schedule).forEach(d=>{if(D.schedule[d]===id)delete D.schedule[d];});
+  save();
+  renderWorkoutsGrid();
+  toast('WORKOUT DELETED');
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function escapeAttr(s){return String(s).replace(/"/g,'&quot;');}
+
 let schedDay=null;
-function renderSchedule(){const tk=DAYS[(new Date().getDay()+6)%7];document.getElementById('week-grid').innerHTML=DAYS.map(d=>{const sess=D.schedule[d],isToday=d===tk;return `<div class="day-cell ${sess?'has':''} ${isToday?'today':''}" onclick="openSchedPopup('${d}')"><div class="day-name">${d}</div>${isToday?'<div class="today-pill">TODAY</div>':''}${sess?`<div class="day-sess">S${sess}</div><div style="font-size:10px;color:var(--muted);margin-top:3px">${SESSIONS[sess].name}</div>`:'<div style="color:var(--muted);font-size:10px;margin-top:6px">REST</div>'}</div>`;}).join('');}
-function openSchedPopup(d){schedDay=d;document.getElementById('sched-popup-day').textContent=d.toUpperCase();document.getElementById('sched-popup').classList.add('on');}
+function renderSchedule(){
+  const tk=DAYS[(new Date().getDay()+6)%7];
+  document.getElementById('week-grid').innerHTML=DAYS.map(d=>{const sess=D.schedule[d],isToday=d===tk,w=sess&&D.workouts[sess]?D.workouts[sess]:null;return `<div class="day-cell ${w?'has':''} ${isToday?'today':''}" onclick="openSchedPopup('${d}')"><div class="day-name">${d}</div>${isToday?'<div class="today-pill">TODAY</div>':''}${w?`<div class="day-sess" style="font-size:9px;padding:2px 5px">${w.name}</div>`:'<div style="color:var(--muted);font-size:10px;margin-top:6px">REST</div>'}</div>`;}).join('');
+  const wks=Object.entries(D.workouts);
+  const info=document.getElementById('schedule-workouts-info');
+  if(info){
+    info.innerHTML = wks.length ? `<div class="grid2" style="gap:10px">${wks.map(([id,w])=>`<div style="padding:8px"><p style="font-family:'Bebas Neue';color:var(--accent);letter-spacing:2px;font-size:15px">${w.name}</p><p style="font-size:11px;color:var(--muted)">${w.exercises.length} exercises</p></div>`).join('')}</div>` : '<p style="color:var(--muted);font-size:13px">No workouts yet. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="navigate(\'workout\')">Create your first one</span> in the Workout tab.</p>';
+  }
+}
+function openSchedPopup(d){
+  schedDay=d;
+  document.getElementById('sched-popup-day').textContent=d.toUpperCase();
+  const opts=document.getElementById('sched-popup-opts');
+  const wks=Object.entries(D.workouts);
+  if(!wks.length){
+    opts.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:14px 0">No workouts yet. Create one in the Workout tab first.</p><button class="btn btn-fill" onclick="closeSchedPopup();navigate(\'workout\')">GO TO WORKOUTS</button>';
+  } else {
+    opts.innerHTML=wks.map(([id,w])=>`<button class="btn" onclick="assignDay('${id}')">${w.name}</button>`).join('')+'<button class="btn btn-danger" onclick="assignDay(null)">REMOVE</button>';
+  }
+  document.getElementById('sched-popup').classList.add('on');
+}
 function closeSchedPopup(){document.getElementById('sched-popup').classList.remove('on');schedDay=null;}
 function assignDay(num){if(!schedDay)return;if(num===null)delete D.schedule[schedDay];else D.schedule[schedDay]=num;save();closeSchedPopup();renderSchedule();}
 
@@ -705,7 +943,7 @@ function renderPRs(){const list=document.getElementById('pr-list'),entries=Objec
 
 let chXP=null,chW=null,chBW=null;
 const CH_OPTS={responsive:true,plugins:{legend:{labels:{color:'#aaa',font:{family:'Rajdhani',size:13}}}},scales:{x:{ticks:{color:'#555',font:{family:'Share Tech Mono',size:11}},grid:{color:'rgba(255,69,0,.08)'}},y:{ticks:{color:'#555',font:{family:'Share Tech Mono',size:11}},grid:{color:'rgba(255,69,0,.08)'}}}};
-function renderProgress(){const f=document.getElementById('ex-filter');const all=Object.values(SESSIONS).flatMap(s=>s.exercises);f.innerHTML='<option value="all">All Exercises (Top 3)</option>'+all.map(e=>`<option value="${e}">${e}</option>`).join('');drawCharts();}
+function renderProgress(){const f=document.getElementById('ex-filter');const all=[...new Set([...Object.values(D.workouts).flatMap(s=>s.exercises),...EXERCISE_LIBRARY])];f.innerHTML='<option value="all">All Exercises (Top 3)</option>'+all.map(e=>`<option value="${e}">${e}</option>`).join('');drawCharts();}
 function drawCharts(){drawXPChart();drawWeightChart();drawBWChart();}
 function drawXPChart(){if(chXP)chXP.destroy();let cum=0;const labels=D.workoutLog.map(w=>w.date),vals=D.workoutLog.map(w=>{cum+=w.totalXP;return cum;});chXP=new Chart(document.getElementById('ch-xp'),{type:'line',data:{labels,datasets:[{label:'Cumulative XP',data:vals,borderColor:'#ff4500',backgroundColor:'rgba(255,69,0,.1)',fill:true,tension:.35,pointBackgroundColor:'#ff4500',pointRadius:3}]},options:CH_OPTS});}
 function drawWeightChart(){if(chW)chW.destroy();const fval=document.getElementById('ex-filter').value,allDates=[...new Set(D.workoutLog.map(w=>w.date))].sort();let datasets=[];const COLORS=['#ff4500','#ffd700','#4488ff','#00cc44','#aa44ff'];if(fval==='all'){const freq={};D.workoutLog.forEach(w=>w.exercises.forEach(e=>freq[e.name]=(freq[e.name]||0)+1));const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]);top.forEach((ex,ci)=>{const byDate={};D.workoutLog.forEach(w=>w.exercises.filter(e=>e.name===ex).forEach(e=>byDate[w.date]=e.weight));datasets.push({label:ex,data:allDates.map(d=>byDate[d]??null),borderColor:COLORS[ci],backgroundColor:'transparent',tension:.35,pointBackgroundColor:COLORS[ci],pointRadius:3,spanGaps:true});});}else{const byDate={};D.workoutLog.forEach(w=>w.exercises.filter(e=>e.name===fval).forEach(e=>byDate[w.date]=e.weight));datasets=[{label:fval+' (kg)',data:allDates.map(d=>byDate[d]??null),borderColor:'#ff4500',backgroundColor:'rgba(255,69,0,.1)',fill:true,tension:.35,pointBackgroundColor:'#ff4500',pointRadius:3,spanGaps:true}];}chW=new Chart(document.getElementById('ch-weight'),{type:'line',data:{labels:allDates,datasets},options:CH_OPTS});}
